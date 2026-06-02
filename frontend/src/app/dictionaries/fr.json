@@ -1,0 +1,11 @@
+{
+  "nav": {
+    "login": "Se connecter",
+    "register": "Créer un compte"
+  },
+  "home": {
+    "title": "Nos Créations",
+    "subtitle": "L'art de sublimer votre beauté naturelle à travers nos modèles exclusifs.",
+    "button": "Réserver"
+  }
+}

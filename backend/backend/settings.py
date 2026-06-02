@@ -24,7 +24,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # PROTECTION DE LA CLÉ SECRÈTE VIA LE .ENV
-SECRET_KEY = env('DJANGO_SECRET_KEY', default='django-insecure-3a#)hx*w#dvv)@()#s)61!ni&2qthupjih1xx+cr7btodvfstr')
+SECRET_KEY = env('DJANGO_SECRET_KEY')
 
 # PROTECTION DU MODE DEBUG VIA LE .ENV
 DEBUG = env('DJANGO_DEBUG')
@@ -130,7 +130,7 @@ CORS_ORIGIN_WHITELIST = [
 ]
 
 # SÉCURISATION DE STRIPE VIA LE .ENV
-STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY', default="sk_test_51TEhwOFw49lWGScLSqvmlp0fsB9udhXNoVzhz4q6V8whWQX98KlOChTHVBtNE26bvP2WrCHsv3JLdwfHBXYNViQ700F0Xr75K8")
+STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY')
 
 # --- CONFIGURATION SMTP GMAIL SÉCURISÉE VIA LE .ENV ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -139,7 +139,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 EMAIL_HOST_USER = env('EMAIL_USER', default='rendezvous@nelbeauty.ca') 
-EMAIL_HOST_PASSWORD = env('EMAIL_PASSWORD', default='fbjw pumo cizb baav') 
+EMAIL_HOST_PASSWORD = env('EMAIL_PASSWORD') 
 
 DEFAULT_FROM_EMAIL = f'Nel Beauty <{EMAIL_HOST_USER}>'
 

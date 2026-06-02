@@ -1,0 +1,11 @@
+{
+  "nav": {
+    "login": "Log In",
+    "register": "Sign Up"
+  },
+  "home": {
+    "title": "Our Creations",
+    "subtitle": "The art of enhancing your natural beauty through our exclusive styles.",
+    "button": "Book Now"
+  }
+}
