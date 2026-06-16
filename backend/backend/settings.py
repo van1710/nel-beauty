@@ -30,7 +30,8 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env('DJANGO_DEBUG')
 
 # Autoriser Django à répondre quand on l'appelle via ces adresses
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.100.1']
+# Autorise toutes les connexions temporairement pour le déploiement sur Render
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
