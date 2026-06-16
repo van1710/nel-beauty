@@ -26,6 +26,10 @@ class Produit(models.Model):
 
     def __str__(self):
         return f"{self.nom_fr} ({self.get_categorie_display()})"
+
+    @property
+    def nom(self):
+        return self.nom_fr
         
 class Reservation(models.Model):
     produit = models.ForeignKey(Produit, on_delete=models.CASCADE)
@@ -38,13 +42,14 @@ class Reservation(models.Model):
     stripe_id = models.CharField(max_length=255, blank=True, null=True)
     date_creation = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='reservations')
-
+    stripe_session_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
 
     def save(self, *args, **kwargs):
+        # 1. Génération unique du numéro de commande si absent
         if not self.numero_commande:
             self.numero_commande = f"NB-{uuid.uuid4().hex[:6].upper()}"
-        super().save(*args, **kwargs)
 
+        # 2. Validation du créneau unique AVANT d'enregistrer en base de données
         doublon_existe = Reservation.objects.filter(
             date_rdv=self.date_rdv,
             heure_rdv=self.heure_rdv,
@@ -53,32 +58,25 @@ class Reservation(models.Model):
         ).exclude(pk=self.pk).exists()
 
         if doublon_existe:
-            raise ValidationError("Désolé, ce créneau horaire (date et heure) est déjà réservé et payé par une autre cliente.")
+            raise ValidationError("Désolé, ce créneau horaire est déjà réservé.")
 
-        # 3. Si tout est beau, on enregistre dans MongoDB
+        # 3. Un SEUL et unique enregistrement final
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Réservation {self.numero_commande} - {self.email_client}"
-
-from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Avis(models.Model):
     produit = models.ForeignKey(Produit, on_delete=models.CASCADE, related_name='avis')
     nom_cliente = models.CharField(max_length=100)
     note = models.IntegerField(default=5, validators=[MinValueValidator(1), MaxValueValidator(5)])
     commentaire = models.TextField()
-    
-    # AJOUT : Pour permettre aux clientes de téléverser la photo de leurs tresses
     photo = models.ImageField(upload_to='avis_photos/', null=True, blank=True)
-    
     date_publication = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = "Avis Client"
         verbose_name_plural = "Avis Clients"
 
-    # AJOUT : Pour voir directement qui a écrit l'avis dans ton admin Django
     def __str__(self):
-        return f"Avis de {self.nom_cliente} ({self.note}/5) pour {self.produit.nom}"
+        return f"Avis de {self.nom_cliente} ({self.note}/5) pour {self.produit.nom_fr}"

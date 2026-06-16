@@ -7,5 +7,37 @@
     "title": "Nos Créations",
     "subtitle": "L'art de sublimer votre beauté naturelle à travers nos modèles exclusifs.",
     "button": "Réserver"
+  },
+  "mes_reservations": {
+    "titre": "Mes Rendez-vous",
+    "verification_compte": "Vérification de votre compte...",
+    "non_connecte": "Oups ! Vous n'êtes pas connecté.",
+    "retour_connexion": "Retourner à la connexion",
+    "chargement_donnees": "Chargement de vos données...",
+    "aucune_reservation": "Vous n'avez aucune réservation prévue pour le moment.",
+    "bouton_rdv": "Prendre un rendez-vous",
+    "a": "à"
+  },
+  "reservation": {
+    "chargement_seance": "Chargement de votre séance...",
+    "modele_introuvable": "Modèle introuvable.",
+    "retour": "← Retour",
+    "prix_promo": "Prix avec Promo (-30%)",
+    "acompte": "Acompte (30%)",
+    "reste_payer": "Reste à payer au salon",
+    "votre_rdv": "Votre Rendez-vous",
+    "choisir_heure": "Choisir l'heure",
+    "selectionner_date": "Sélectionnez d'abord une date",
+    "deja_reserve": "🔴 (Déjà réservé - Complet)",
+    "disponible": "🟢 (Disponible)",
+    "note_annulation": "Annulation gratuite jusqu'à 24h avant le RDV. Passé ce délai, l'acompte est conservé.",
+    "connexion": "Connexion...",
+    "bouton_payer": "Payer l'acompte"
+  },
+  "paiement_reussi": {
+    "titre": "Paiement Réussi !",
+    "message_principal": "Merci pour votre confiance. Votre acompte a été bien reçu et votre créneau pour Nel Beauty est désormais réservé.",
+    "note_salon": "Un e-mail de confirmation vous a été envoyé. Le reste du paiement se fera directement au salon.",
+    "bouton_retour": "Retour à l'accueil"
   }
 }

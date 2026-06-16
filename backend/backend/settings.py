@@ -52,7 +52,6 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware',  # Désactivée temporairement selon tes besoins
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -78,7 +77,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend.wsgi.application'
 
 
-# --- CONNEXION SÉCURISÉE À MONGODB ATLAS ---
+# --- CONNEXION SÉCURISÉE À POSTGRESQL ---
 DATABASES = {
     'default': dj_database_url.config(
         default='postgresql://postgres:Winnelle2.0@localhost:5432/nel_beauty'
@@ -129,8 +128,9 @@ CORS_ORIGIN_WHITELIST = [
     'http://192.168.100.1:3000',
 ]
 
-# SÉCURISATION DE STRIPE VIA LE .ENV
+# --- SÉCURISATION DE STRIPE VIA LE .ENV ---
 STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY')
+STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET')  # Ligne ajoutée pour le Webhook !
 
 # --- CONFIGURATION SMTP GMAIL SÉCURISÉE VIA LE .ENV ---
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -138,9 +138,11 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-EMAIL_HOST_USER = env('EMAIL_USER', default='rendezvous@nelbeauty.ca') 
+# Récupération dynamique depuis le fichier .env (avec fallback sur ton nouveau mail)
+EMAIL_HOST_USER = env('EMAIL_USER', default='nelbeauty86@gmail.com') 
 EMAIL_HOST_PASSWORD = env('EMAIL_PASSWORD') 
 
+# Formatage de l'expéditeur qui s'affichera chez tes clients
 DEFAULT_FROM_EMAIL = f'Nel Beauty <{EMAIL_HOST_USER}>'
 
 # --- RÉPARER L'ERREUR 403 FORBIDDEN ---

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { getDictionary } from "./dictionaries/get-dictionary";
 import Footer from "./components/Footer";
@@ -17,9 +18,9 @@ export default function Home() {
   const [coiffurePourLireAvis, setCoiffurePourLireAvis] = useState(null);
   const [coiffurePourLaisserAvis, setCoiffurePourLaisserAvis] = useState(null);
 
-  // --- AJOUT I18N : ÉTATS POUR LA LANGUE ---
-  const [langue, setLangue] = useState("fr"); // Langue par défaut
-  const [t, setT] = useState(null); // Contient le dictionnaire de texte actif
+  // --- AJOUT I18N : ÉTATS POUR LA LANGUE PERSISTANTE ---
+  const [langue, setLangue] = useState("fr"); // État initial temporaire avant hydratation client
+  const [t, setT] = useState(null); 
 
   // --- MAPPAGE DES IMAGES ---
   const imageMap = {
@@ -42,7 +43,57 @@ export default function Home() {
     "Crochet Braids (Water Wave)": "/coiffure/crochet_braids.jpeg",
   };
 
-  // --- CHARGEMENT DU DICTIONNAIRE LORS DU CHANGEMENT DE LANGUE ---
+  // --- DICTIONNAIRE DE TRADUCTION DES COIFFURES ---
+  const translationMap = {
+    "Knotless (Tresses sans noeuds)": {
+      en: { nom: "Knotless Braids", desc: "Beautiful knotless braids, lightweight and protective for your hair." },
+      fr: { nom: "Knotless (Tresses sans noeuds)", desc: "De magnifiques tresses sans nœuds, légères et protectrices pour vos cheveux." }
+    },
+    "Bantu Knots": {
+      en: { nom: "Bantu Knots", desc: "Traditional and stylish Bantu Knots for a bold natural look." },
+      fr: { nom: "Bantu Knots", desc: "Bantu Knots traditionnels et élégants pour un look naturel affirmé." }
+    },
+    "Crochet Braids (Water Wave)": {
+      en: { nom: "Crochet Braids (Water Wave)", desc: "Quick and gorgeous protective style with water wave texture." },
+      fr: { nom: "Crochet Braids (Water Wave)", desc: "Style protecteur rapide et magnifique avec une texture ondulée." }
+    },
+    "Senegalese Twists (Vannilles)": {
+      en: { nom: "Senegalese Twists", desc: "Classic Senegalese twists, elegant and long-lasting." },
+      fr: { nom: "Senegalese Twists (Vannilles)", desc: "Vanilles sénégalaises classiques, élégantes et durables." }
+    },
+    "Flat Twists (Vanilles Couchées)": {
+      en: { nom: "Flat Twists", desc: "Perfect protective flat twists for natural hair care." },
+      fr: { nom: "Flat Twists (Vanilles Couchées)", desc: "Vanilles couchées protectrices parfaites pour prendre soin des cheveux naturels." }
+    },
+    "Boho Knotless Braids": {
+      en: { nom: "Boho Knotless Braids", desc: "Trendy knotless braids with curly bohemian wavy ends." },
+      fr: { nom: "Boho Knotless Braids", desc: "Tresses sans nœuds tendances avec des mèches bouclées style bohème." }
+    },
+    "Tissage Ouvert (Leave-out)": {
+      en: { nom: "Partial Weave (Leave-out)", desc: "Natural looking partial weave blending with your own hair." },
+      fr: { nom: "Tissage Ouvert (Leave-out)", desc: "Tissage partiel au rendu très naturel qui se mélange avec vos propres cheveux." }
+    },
+    "Stitch Braids": {
+      en: { nom: "Stitch Braids", desc: "Sharp and clean lines stitch braids for a perfect look." },
+      fr: { nom: "Stitch Braids", desc: "Tresses plaquées aux lignes nettes et précises pour un look impeccable." }
+    },
+    "Soft Locs Mi-longues": {
+      en: { nom: "Mid-Length Soft Locs", desc: "Lightweight, natural-looking soft locs with a beautiful texture." },
+      fr: { nom: "Soft Locs Mi-longues", desc: "Fausses locks légères et ultra-naturelles avec une magnifique texture." }
+    },
+    "Lemonade Braids": {
+      en: { nom: "Lemonade Braids", desc: "Stunning side-swept braided style inspired by iconic trends." },
+      fr: { nom: "Lemonade Braids", desc: "Superbe style de tresses sur le côté inspiré des dernières tendances." }
+    }
+  };
+
+  // 1. CHARGEMENT DE LA LANGUE DEPUIS LE LOCALSTORAGE AU DEMARRAGE
+  useEffect(() => {
+    const langueSauvegardee = localStorage.getItem("nel_beauty_lang") || "fr";
+    setLangue(langueSauvegardee);
+  }, []);
+
+  // 2. CHARGEMENT DU DICTIONNAIRE LORS DU CHANGEMENT DE LANGUE
   useEffect(() => {
     async function chargerTraductions() {
       const dict = await getDictionary(langue);
@@ -51,7 +102,7 @@ export default function Home() {
     chargerTraductions();
   }, [langue]);
 
-  // --- RÉCUPÉRATION DES DONNÉES ---
+  // 3. RECUPERATION DES DONNEES
   useEffect(() => {
     async function fetchCoiffures() {
       try {
@@ -68,6 +119,12 @@ export default function Home() {
     }
     fetchCoiffures();
   }, []);
+
+  // Fonction pour changer de langue et assurer la persistance
+  const changerLangue = (nouvelleLangue) => {
+    setLangue(nouvelleLangue);
+    localStorage.setItem("nel_beauty_lang", nouvelleLangue); // 👑 Sauvegarde le choix !
+  };
 
   // --- LOGIQUE DE FILTRE ET TRI ---
   const coiffuresFiltrées = coiffures
@@ -86,7 +143,6 @@ export default function Home() {
     return imageMap[nomDjango] || "https://via.placeholder.com/400x300/8b5a2b/ffffff?text=Photo+Disponible";
   };
 
-  // Attendre que le dictionnaire soit chargé pour éviter que le site affiche des variables vides
   if (!t) return <div className="text-center mt-20">Loading / Chargement...</div>;
   if (chargement) return <div className="text-center mt-20">Chargement du salon...</div>;
   if (erreur) return <div className="text-center mt-20 text-red-500">{erreur}</div>;
@@ -98,17 +154,17 @@ export default function Home() {
         <h1 className="text-3xl font-extrabold text-[#3d2b1f] tracking-tight text-center">Nel Beauty</h1>
         
         <div className="flex gap-6 items-center">
-          {/* --- LE BOUTON DISCRET FR | EN --- */}
+          {/* --- LE BOUTON DISCRET FR | EN MAINTENANT PERSISTANT --- */}
           <div className="flex items-center gap-1 text-xs font-bold tracking-widest text-gray-400">
             <button 
-              onClick={() => setLangue("fr")} 
+              onClick={() => changerLangue("fr")} 
               className={`hover:text-[#8b5a2b] transition ${langue === "fr" ? "text-[#8b5a2b] border-b-2 border-[#8b5a2b]" : ""}`}
             >
               FR
             </button>
             <span>|</span>
             <button 
-              onClick={() => setLangue("en")} 
+              onClick={() => changerLangue("en")} 
               className={`hover:text-[#8b5a2b] transition ${langue === "en" ? "text-[#8b5a2b] border-b-2 border-[#8b5a2b]" : ""}`}
             >
               EN
@@ -131,6 +187,7 @@ export default function Home() {
           <h2 className="text-4xl font-black text-[#3d2b1f] mb-4">{t.home.title}</h2>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto">{t.home.subtitle}</p>
         </header>
+
         {/* --- BARRE DE FILTRE & TRI --- */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-16 border-b border-gray-200 pb-1">
           <div className="flex flex-wrap justify-center gap-4">
@@ -163,30 +220,17 @@ export default function Home() {
           </div>
         </div>
 
-        {/* --- ÉTATS CHARGEMENT / ERREUR --- */}
-        {chargement && (
-          <div className="flex justify-center py-20">
-            <p className="text-xl animate-pulse text-gray-400 font-medium">Récupération de votre catalogue...</p>
-          </div>
-        )}
-        
-        {erreur && (
-          <div className="bg-red-50 text-red-600 p-6 rounded-2xl text-center font-bold border border-red-100">
-            {erreur}
-          </div>
-        )}
-
         {/* --- GRILLE DE PRODUITS --- */}
         {!chargement && !erreur && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
             {coiffuresFiltrées.map((coiffure) => (
               <div key={coiffure.id} className="group flex flex-col">
                 <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-gray-100 mb-6 shadow-sm">
-                 <img
-                   src={getImagePath(coiffure.nom_fr)} 
-                   alt={langue === "fr" ? coiffure.nom_fr : coiffure.nom_en} 
-                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
+                  <img
+                    src={getImagePath(coiffure.nom)} 
+                    alt={coiffure.nom || "Style"} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
                   <div className="absolute top-5 right-5 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full shadow-sm">
                     <p className="text-[9px] font-black uppercase tracking-widest text-[#8b5a2b]">
                       {coiffure.type || coiffure.categorie || "Style"}
@@ -196,13 +240,12 @@ export default function Home() {
 
                 <div className="space-y-3 flex-grow flex flex-col">
                   <h3 className="text-2xl font-bold text-[#3d2b1f] group-hover:text-[#8b5a2b] transition-colors">
-                    {langue === "fr" ? coiffure.nom_fr : coiffure.nom_en}
-                </h3>
-                <p className="text-gray-500 text-sm leading-relaxed line-clamp-2">
-                   {langue === "fr" ? coiffure.description_fr : coiffure.description_en}
-                </p>
+                    {translationMap[coiffure.nom?.trim()]?.[langue]?.nom || coiffure.nom}
+                  </h3>
+                  <p className="text-gray-500 text-sm leading-relaxed line-clamp-2">
+                    {translationMap[coiffure.nom?.trim()]?.[langue]?.desc || coiffure.description || "Aucune description disponible."}
+                  </p>
 
-                  {/* --- AJOUT AVIS : COMPTEUR ÉTOILES ET ACTIONS DANS LA CARTE --- */}
                   <div className="pt-2 flex items-center justify-between border-t border-dashed border-gray-200 text-sm">
                     <div className="flex items-center space-x-1">
                       <span className="text-yellow-500 font-bold">★</span>
@@ -221,7 +264,7 @@ export default function Home() {
                         onClick={() => setCoiffurePourLireAvis(coiffure)}
                         className="text-[#8b5a2b] font-semibold hover:underline text-xs"
                       >
-                        📄 {langue === "fr" ? `Lire (${coiffure.avis ? coiffure.avis.length : 0})` : `Read (${coiffure.avis ? coiffure.avis.length : 0})`}
+                        {langue === "fr" ? `Lire (${coiffure.avis ? coiffure.avis.length : 0})` : `Read (${coiffure.avis ? coiffure.avis.length : 0})`}
                       </button>
                       <button 
                         onClick={() => setCoiffurePourLaisserAvis(coiffure)}
@@ -252,7 +295,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* Message si aucun résultat */}
         {!chargement && coiffuresFiltrées.length === 0 && (
           <div className="text-center py-20">
             <p className="text-gray-400 italic">
@@ -262,9 +304,9 @@ export default function Home() {
         )}
       </div>
 
-      {/* --- AJOUT AVIS : FENÊTRE POP-UP POUR LIRE --- */}
+      {/* --- POP-UP POUR LIRE LES AVIS --- */}
       {coiffurePourLireAvis && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[80vh] overflow-y-auto">
             <button 
               onClick={() => setCoiffurePourLireAvis(null)} 
@@ -274,7 +316,7 @@ export default function Home() {
             </button>
             <h3 className="text-xl font-bold text-[#3d2b1f] mb-4">
               {langue === "fr" ? "Avis clients — " : "Customer reviews — "}
-              {langue === "fr" ? coiffurePourLireAvis.nom_fr : coiffurePourLireAvis.nom_en}
+              {translationMap[coiffurePourLireAvis.nom?.trim()]?.[langue]?.nom || coiffurePourLireAvis.nom}
             </h3>
             <div className="space-y-4">
               {coiffurePourLireAvis.avis && coiffurePourLireAvis.avis.length > 0 ? (
@@ -297,9 +339,9 @@ export default function Home() {
         </div>
       )}
 
-      {/* --- AJOUT AVIS : FENÊTRE POP-UP POUR NOTER --- */}
+      {/* --- POP-UP POUR LAISSER UN AVIS --- */}
       {coiffurePourLaisserAvis && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
             <button 
               onClick={() => setCoiffurePourLaisserAvis(null)} 
@@ -309,7 +351,7 @@ export default function Home() {
             </button>
             <h4 className="font-bold text-[#3d2b1f] mb-4 text-lg">
               {langue === "fr" ? "Laisser une note pour : " : "Leave a review for: "}
-              {langue === "fr" ? coiffurePourLaisserAvis.nom_fr : coiffurePourLaisserAvis.nom_en}
+              {translationMap[coiffurePourLaisserAvis.nom?.trim()]?.[langue]?.nom || coiffurePourLaisserAvis.nom}
             </h4>
             
             <form 

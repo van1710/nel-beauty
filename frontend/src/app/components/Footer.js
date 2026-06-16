@@ -11,7 +11,7 @@ export default function Footer({ langue }) {
 
   const mapUrl = "https://www.google.com/maps/search/?api=1&query=801+Promenade+de+l+Aviation+Ottawa+ON+K1K+4R3";
 
-  // 💡 CORRECTION SÉCURITÉ : On force la variable en minuscules au cas où page.js envoie "FR" ou "EN"
+  // On force la variable en minuscules au cas où page.js envoie "FR" ou "EN"
   const langueCode = langue ? langue.toLowerCase() : "fr";
 
   // --- DICTIONNAIRE DE TRADUCTION ---
@@ -71,14 +71,20 @@ export default function Footer({ langue }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           email: emailAnnul, 
-          numero_commande: numCmd 
+          numero_commande: numCmd,
+          langue: langueCode // Transmet la langue au backend Django pour l'e-mail bilingue
         }),
       });
 
       const data = await res.json();
 
-      if (res.ok) {
-        alert(langueCode === "en" ? "Success: Cancellation confirmed." : "Succès : Annulation confirmée.");
+      if (res.ok && data.status === "success") {
+        // Alerte bilingue claire mentionnant l'envoi du courriel
+        alert(
+          langueCode === "en" 
+            ? "Success: Your cancellation has been confirmed. A confirmation email has been sent to you with your refund details." 
+            : "Succès : Annulation confirmée. Un e-mail de confirmation vous a été envoyé avec les détails de votre remboursement."
+        );
         setShowModal(false);
         setEmailAnnul("");
         setNumCmd("");
@@ -137,7 +143,7 @@ export default function Footer({ langue }) {
             <li>
               <a href="mailto:contact@nelbeauty.ca" className="flex items-center hover:text-amber-300 transition-colors">
                 <span className="mr-3 text-lg">✉️</span>
-                contact@nelbeauty.ca
+                nelbeauty86@gmail.com
               </a>
             </li>
           </ul>

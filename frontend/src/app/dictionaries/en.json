@@ -7,5 +7,37 @@
     "title": "Our Creations",
     "subtitle": "The art of enhancing your natural beauty through our exclusive styles.",
     "button": "Book Now"
+  },
+  "mes_reservations": {
+    "titre": "My Appointments",
+    "verification_compte": "Verifying your account...",
+    "non_connecte": "Oops! You are not logged in.",
+    "retour_connexion": "Back to login",
+    "chargement_donnees": "Loading your data...",
+    "aucune_reservation": "You have no appointments scheduled at the moment.",
+    "bouton_rdv": "Book an appointment",
+    "a": "at"
+  },
+  "reservation": {
+    "chargement_seance": "Loading your session...",
+    "modele_introuvable": "Model not found.",
+    "retour": "← Back",
+    "prix_promo": "Price with Promo (-30%)",
+    "acompte": "Deposit (30%)",
+    "reste_payer": "Remaining balance at the salon",
+    "votre_rdv": "Your Appointment",
+    "choisir_heure": "Choose time",
+    "selectionner_date": "Select a date first",
+    "deja_reserve": "🔴 (Already booked - Full)",
+    "disponible": "🟢 (Available)",
+    "note_annulation": "Free cancellation up to 24h before the appointment. After this deadline, the deposit is kept.",
+    "connexion": "Connecting...",
+    "bouton_payer": "Pay deposit"
+  },
+  "paiement_reussi": {
+    "titre": "Payment Successful!",
+    "message_principal": "Thank you for your trust. Your deposit has been successfully received and your slot for Nel Beauty is now booked.",
+    "note_salon": "A confirmation email has been sent to you. The remaining balance will be due directly at the salon.",
+    "bouton_retour": "Back to Home"
   }
 }
