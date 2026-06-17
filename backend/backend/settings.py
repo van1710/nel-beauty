@@ -124,6 +124,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# La ligne pour que Render sache où ranger les fichiers :
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
