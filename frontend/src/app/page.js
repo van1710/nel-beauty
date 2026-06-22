@@ -325,7 +325,7 @@ export default function Home() {
                   formData.append("photo", e.target.photo.files[0]);
                 }
 
-                const res = await fetch("http://localhost:8000/api/avis/", {
+                const res = await fetch("https://nel-beauty-api.onrender.com/api/avis/", {
                   method: "POST",
                   body: formData, 
                 });

@@ -51,6 +51,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.security.SecurityMiddleware',
+    # 👑 AJOUT CRITIQUE POUR PRODUCTION : Gérer la distribution efficace des fichiers statiques (CSS/JS admin)
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',  # Désactivée temporairement selon tes besoins
@@ -79,7 +81,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend.wsgi.application'
 
 
-# --- CONNEXION SÉCURISÉE À MONGODB ATLAS ---
+# --- CONNEXION SÉCURISÉE À POSTGRES ---
 DATABASES = {
     'default': dj_database_url.config(
         default='postgresql://postgres:Winnelle2.0@localhost:5432/nel_beauty'
@@ -126,6 +128,9 @@ STATIC_URL = 'static/'
 
 # La ligne pour que Render sache où ranger les fichiers :
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# 👑 AJOUT SÉCURITÉ CORS POUR PRODUCTION : Autorise l'accès universel aux API pour Next.js au début
+CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',

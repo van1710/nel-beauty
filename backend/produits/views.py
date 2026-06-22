@@ -8,6 +8,8 @@ from django.core.mail import send_mail
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 
+from django.db import transaction, IntegrityError
+
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
@@ -52,13 +54,16 @@ def creer_session_paiement(request):
         # On intercepte la langue choisie sur le site (fr par défaut)
         langue_front = data.get('langue', 'fr')
         
+        # 👑 LA CORRECTION : Définition propre de la variable nom_produit bilingue
+        nom_produit = produit.nom_fr if langue_front == 'fr' else produit.nom_en
+        
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
                 'price_data': {
                     'currency': 'cad',
                     'product_data': {
-                        'name': f"Deposit - {produit.nom}" if langue_front == 'en' else f"Acompte - {produit.nom}"
+                        'name': f"Deposit - {nom_produit}" if langue_front == 'en' else f"Acompte - {nom_produit}"
                     },
                     'unit_amount': int(montant_acompte * 100),
                 },
@@ -88,7 +93,8 @@ def stripe_webhook(request):
         return HttpResponse(status=400)
 
     if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
+        session_obj = event['data']['object']
+        session = session_obj._to_dict_recursive()
         meta = session['metadata']
         email_client = session['customer_details']['email']
         prod = Produit.objects.get(id=meta['produit_id'])
@@ -182,7 +188,8 @@ def verifier_annulation(request):
         difference = resa.date_rdv - maintenant
 
         if difference >= timedelta(days=1):
-            nom_coiffure = resa.produit.nom
+            # 👑 CORRECTION SÉCURISÉE : S'adapte aux champs nom_fr et nom_en du modèle Produit
+            nom_coiffure = resa.produit.nom_fr if langue_client == 'fr' else resa.produit.nom_en
             email_dest = resa.email_client
 
             # Remboursement via l'API Stripe
@@ -259,7 +266,7 @@ def register_user(request):
             sujet_welcome = "Bienvenue chez Nel Beauty ! ✨"
             corps_welcome = (
                 f"Bonjour,\n\n"
-                f"Votre compte a été créé avec succès avec l'adresse e-mail : {email}.\n"
+                f"Votre account a été créé avec succès avec l'adresse e-mail : {email}.\n"
                 f"Vous pouvez dès à présent vous connecter pour suivre vos rendez-vous et gérer votre profil.\n\n"
                 f"Merci de votre confiance,\nL'équipe Nel Beauty"
             )
@@ -298,3 +305,103 @@ def reset_password_request(request):
         )
         return Response({"message": "Email envoyé !"}, status=200)
     return Response({"error": "Utilisateur non trouvé"}, status=404)
+
+
+# --- 👑 AJOUT FINAL : CONFIRMATION DIRECTE EN LOCAL VIA LE FRONTEND NEXT.JS ---
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def confirmer_paiement_session(request):
+    try:
+        session_id = request.data.get('session_id')
+        if not session_id:
+            return JsonResponse({'error': 'session_id manquant'}, status=400)
+
+        session_obj = stripe.checkout.Session.retrieve(session_id)
+        session = session_obj._to_dict_recursive()
+        
+        metadata = session.get('metadata', {}) or {}
+        customer_details = session.get('customer_details', {}) or {}
+        email_client = customer_details.get('email')
+        
+        if not email_client:
+            return JsonResponse({'message': 'Aucun email trouve dans la session'}, status=200)
+            
+        produit_id = metadata.get('produit_id')
+        try:
+            prod = Produit.objects.get(id=produit_id)
+        except Produit.DoesNotExist:
+            return JsonResponse({'error': 'Produit introuvable'}, status=400)
+
+        user_associe = User.objects.filter(email=email_client).first()
+        payment_intent = session.get('payment_intent')
+        stripe_transaction_id = payment_intent or session_id
+
+        reservation = Reservation.objects.filter(stripe_session_id=session_id).first()
+
+        if not reservation:
+            cree = False
+            while not cree:
+                try:
+                    with transaction.atomic():
+                        code_aleatoire = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+                        nouveau_numero = f"NB-{code_aleatoire}"
+                        
+                        reservation = Reservation.objects.create(
+                            user=user_associe,
+                            produit=prod,
+                            email_client=email_client,
+                            date_rdv=metadata.get('date_rdv'),
+                            heure_rdv=metadata.get('heure_rdv'),
+                            est_paye=True,
+                            stripe_id=stripe_transaction_id,
+                            stripe_session_id=session_id,
+                            numero_commande=nouveau_numero,
+                            statut='CONFIRME'
+                        )
+                        cree = True
+                except IntegrityError:
+                    continue
+        else:
+            if not reservation.est_paye:
+                reservation.est_paye = True
+                reservation.stripe_id = stripe_transaction_id
+                reservation.save()
+
+        langue_client = metadata.get('langue', 'fr').lower()
+        nom_final_produit = prod.nom_en if langue_client == 'en' else prod.nom_fr
+
+        if langue_client == 'en':
+            sujet = "Appointment Confirmation - Nel Beauty ✨"
+            message_corps = (
+                f"Hello,\n\n"
+                f"We are pleased to confirm your booking for: {nom_final_produit}.\n\n"
+                f"📍 Details:\n"
+                f"- Date: {reservation.date_rdv}\n"
+                f"- Time: {reservation.heure_rdv}\n"
+                f"- Order Reference: {reservation.numero_commande}\n\n"
+                f"The 30% deposit has been successfully received. The remaining balance will be due at the salon.\n\n"
+                f"⚠️ Cancellation Policy:\n"
+                f"Free cancellation is available up to 24 hours before your appointment. Past this deadline, the deposit will be retained.\n\n"
+                f"See you soon,\nThe Nel Beauty Team"
+            )
+        else:
+            sujet = "Confirmation de votre rendez-vous - Nel Beauty ✨"
+            message_corps = (
+                f"Bonjour,\n\n"
+                f"Nous avons le plaisir de vous confirmer votre réservation pour : {nom_final_produit}.\n\n"
+                f"📍 Détails :\n"
+                f"- Date : {reservation.date_rdv}\n"
+                f"- Heure : {reservation.heure_rdv}\n"
+                f"- Numéro de commande : {reservation.numero_commande}\n\n"
+                f"L'acompte de 30% a été reçu. Le reste sera à régler sur place.\n\n"
+                f"⚠️ Politique d'annulation :\n"
+                f"Annulation gratuite jusqu'à 24h avant le rendez-vous. Passé ce délai, l'acompte est conservé.\n\n"
+                f"À très bientôt,\nL'équipe Nel Beauty"
+            )
+
+        send_mail(sujet, message_corps, settings.EMAIL_HOST_USER, [email_client])
+        return JsonResponse({'status': 'success', 'message': 'Reservation validee et mail envoye !'})
+
+    except Exception as e:
+        print("❌ ERREUR DANS CONFIRMER_PAIEMENT :", str(e))
+        return JsonResponse({'error': str(e)}, status=500)

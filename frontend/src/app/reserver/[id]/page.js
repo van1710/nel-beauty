@@ -136,7 +136,7 @@ export default function ReservationPage() {
 
                   return (
                     <option key={h} value={h} disabled={estPris}>
-                      {h} {estPris ? "🔴 (Déjà réservé - Complet)" : "🟢 (Disponible)"}
+                      {h} {estPris ? " (Déjà réservé - Complet)" : " (Disponible)"}
                     </option>
                   );
                 });
